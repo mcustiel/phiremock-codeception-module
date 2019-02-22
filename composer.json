@@ -1,0 +1,34 @@
+{
+    "keywords" : [
+        "http",
+        "mock",
+        "server",
+        "external",
+        "acceptance",
+        "tests",
+        "codeception",
+        "extension",
+        "phiremock"
+    ],
+     "authors" : [{
+            "name" : "Mariano Custiel",
+            "email" : "jmcustiel@gmail.com",
+            "homepage" : "https://github.com/mcustiel",
+            "role" : "Developer"
+        }
+    ],
+    "autoload" : {
+        "psr-4" : {
+            "Codeception\\" : "src"
+        }
+    },
+    "name" : "mcustiel/phiremock-codeception-module",
+    "type" : "project",
+    "description" : "Codeception extension for PhireMock. Allows to stub remote services for HTTP requests.",
+    "license" : "GPL-3.0-or-later",
+    "require" : {
+        "php" : ">=5.6",
+        "mcustiel/phiremock-client": "^1.0",
+        "codeception/codeception" : "^2.2"
+    }
+}
