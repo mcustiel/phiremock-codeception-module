@@ -25,23 +25,44 @@ use GuzzleHttp\Client;
 use Mcustiel\Phiremock\Client\Phiremock as PhiremockClient;
 use Mcustiel\Phiremock\Client\Utils\RequestBuilder;
 use Mcustiel\Phiremock\Domain\Expectation;
+use Mcustiel\Phiremock\Client\Connection\Host;
+use Mcustiel\Phiremock\Client\Connection\Port;
+use Mcustiel\Phiremock\Client\Factory;
+use Codeception\Exception\ConfigurationException;
+use Mcustiel\Phiremock\Client\Utils\ConditionsBuilder;
 
 class Phiremock extends CodeceptionModule
 {
+    private const EXPECTATIONS_PATH = 'phiremock-expectations';
+    private const EXPECTATIONS_PATH_CONFIG = 'expectationsPath';
+
     /** @var array */
     protected $config = [
         'host'                => 'localhost',
-        'port'                => '8086',
+        'port'                => 8086,
         'resetBeforeEachTest' => false,
+        self::EXPECTATIONS_PATH_CONFIG => ''
     ];
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
     private $phiremock;
 
+    /** @var ExpectationAnnotationParser */
+    private $expectationsParser;
+
     public function _beforeSuite($settings = [])
     {
         $this->config = array_merge($this->config, $settings);
-        $this->phiremock = new PhiremockClient($this->config['host'], $this->config['port']);
+
+        $this->setExpectationsPathConfiguration();
+
+        $this->phiremock = Factory::createDefault()->createPhiremockClient(
+            new Host($this->config['host']),
+            new Port($this->config['port'])
+        );
+        $this->expectationsParser = new ExpectationAnnotationParser(
+            $this->config[self::EXPECTATIONS_PATH_CONFIG]
+        );
     }
 
     public function _before(TestInterface $test)
@@ -49,51 +70,45 @@ class Phiremock extends CodeceptionModule
         if ($this->config['resetBeforeEachTest']) {
             $this->haveACleanSetupInRemoteService();
         }
-        $expectations = (new ExpectationAnnotationParser())->getExpectations($test);
+        $expectations = $this->expectationsParser->getExpectations($test);
         if (!empty($expectations)) {
-            $client = new Client([
-                'base_uri' => "{$this->config['host']}:{$this->config['port']}",
-            ]);
             foreach ($expectations as $expectation) {
-                $client->post(PhiremockClient::API_EXPECTATIONS_URL, [
-                    'headers' => [
-                        'Content-Type' => 'application/json'
-                    ],
-                    'body'    => file_get_contents($expectation),
-                ]);
+                $this->phiremock->createExpectationFromJson(
+                    file_get_contents($expectation)
+                );
             }
         }
         parent::_before($test);
     }
 
-    public function expectARequestToRemoteServiceWithAResponse(Expectation $expectation)
+    public function expectARequestToRemoteServiceWithAResponse(Expectation $expectation): void
     {
         $this->phiremock->createExpectation($expectation);
     }
 
-    public function haveACleanSetupInRemoteService()
+    public function haveACleanSetupInRemoteService(): void
     {
         $this->phiremock->reset();
     }
 
-    public function dontExpectRequestsInRemoteService()
+    public function dontExpectRequestsInRemoteService(): void
     {
         $this->phiremock->clearExpectations();
         $this->phiremock->resetRequestsCounter();
     }
 
-    public function haveCleanScenariosInRemoteService()
+    public function haveCleanScenariosInRemoteService(): void
     {
         $this->phiremock->resetScenarios();
     }
 
-    public function didNotReceiveRequestsInRemoteService()
+    public function didNotReceiveRequestsInRemoteService(): void
     {
         $this->phiremock->resetRequestsCounter();
     }
 
     /** @throws \Exception */
-    public function seeRemoteServiceReceived(int $times, RequestBuilder $builder)
+    public function seeRemoteServiceReceived(int $times, ConditionsBuilder $builder): void
     {
         $requests = $this->phiremock->countExecutions($builder);
         if ($times !== $requests) {
@@ -103,8 +118,29 @@ class Phiremock extends CodeceptionModule
         }
     }
 
-    public function grabRequestsMadeToRemoteService(RequestBuilder $builder): array
+    public function grabRequestsMadeToRemoteService(ConditionsBuilder $builder): array
     {
         return $this->phiremock->listExecutions($builder);
+    }
+
+    private function setExpectationsPathConfiguration(): void
+    {
+        $configuredPath = $this->config[self::EXPECTATIONS_PATH_CONFIG];
+        if (empty($configuredPath)) {
+            $defaultPath = codecept_data_dir(self::EXPECTATIONS_PATH);
+            if (!is_dir($defaultPath)) {
+                $created = mkdir($defaultPath);
+                if (!$created) {
+                    throw new \RuntimeException('Could not create directory ' . $defaultPath);
+                }
+            }
+            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $defaultPath;
+        } elseif (!is_dir($configuredPath)) {
+            $configuredPath = codecept_absolute_path($configuredPath);
+            if (!is_dir($configuredPath)) {
+                throw new ConfigurationException('Could not find the configured expectations path: ' . $configuredPath);
+            }
+            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $configuredPath;
+        }
     }
 }
