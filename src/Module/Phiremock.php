@@ -20,24 +20,22 @@ namespace Codeception\Module;
 
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
+use Codeception\Util\ExpectationAnnotationParser;
+use GuzzleHttp\Client;
 use Mcustiel\Phiremock\Client\Phiremock as PhiremockClient;
 use Mcustiel\Phiremock\Client\Utils\RequestBuilder;
 use Mcustiel\Phiremock\Domain\Expectation;
 
 class Phiremock extends CodeceptionModule
 {
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $config = [
         'host'                => 'localhost',
         'port'                => '8086',
         'resetBeforeEachTest' => false,
     ];
 
-    /**
-     * @var \Mcustiel\Phiremock\Client\Phiremock
-     */
+    /** @var \Mcustiel\Phiremock\Client\Phiremock */
     private $phiremock;
 
     public function _beforeSuite($settings = [])
@@ -50,6 +48,20 @@ class Phiremock extends CodeceptionModule
     {
         if ($this->config['resetBeforeEachTest']) {
             $this->haveACleanSetupInRemoteService();
+        }
+        $expectations = (new ExpectationAnnotationParser())->getExpectations($test);
+        if (!empty($expectations)) {
+            $client = new Client([
+                'base_uri' => "{$this->config['host']}:{$this->config['port']}",
+            ]);
+            foreach ($expectations as $expectation) {
+                $client->post(PhiremockClient::API_EXPECTATIONS_URL, [
+                    'headers' => [
+                        'Content-Type' => 'application/json'
+                    ],
+                    'body'    => file_get_contents($expectation),
+                ]);
+            }
         }
         parent::_before($test);
     }
@@ -80,13 +92,8 @@ class Phiremock extends CodeceptionModule
         $this->phiremock->resetRequestsCounter();
     }
 
-    /**
-     * @param int            $times
-     * @param RequestBuilder $builder
-     *
-     * @throws \Exception
-     */
-    public function seeRemoteServiceReceived($times, RequestBuilder $builder)
+    /** @throws \Exception */
+    public function seeRemoteServiceReceived(int $times, RequestBuilder $builder)
     {
         $requests = $this->phiremock->countExecutions($builder);
         if ($times !== $requests) {
@@ -96,12 +103,7 @@ class Phiremock extends CodeceptionModule
         }
     }
 
-    /**
-     * @param RequestBuilder $builder
-     *
-     * @return array
-     */
-    public function grabRequestsMadeToRemoteService(RequestBuilder $builder)
+    public function grabRequestsMadeToRemoteService(RequestBuilder $builder): array
     {
         return $this->phiremock->listExecutions($builder);
     }
