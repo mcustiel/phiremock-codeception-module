@@ -12,4 +12,5 @@ modules:
         - Phiremock:
             expectationsPath: tests/_data/_unique_expectations
             port: 18080
+            reset_before_each_test: true
             

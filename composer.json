@@ -34,6 +34,7 @@
     },
     "require-dev" : {
         "mcustiel/phiremock-codeception-extension": "dev-version-2.x",
+        "mcustiel/phiremock-server": "dev-master",
         "codeception/module-asserts": "^1.1"
     },
     "prefer-stable": true,

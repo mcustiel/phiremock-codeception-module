@@ -2,7 +2,6 @@
 
 namespace Codeception\Util;
 
-use Codeception\Configuration;
 use Codeception\Exception\ParseException;
 use Codeception\Test\Cest;
 use Codeception\TestInterface;

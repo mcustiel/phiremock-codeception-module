@@ -6,16 +6,19 @@ use Mcustiel\Phiremock\Client\Utils\A;
 use Mcustiel\Phiremock\Client\Utils\Is;
 use Mcustiel\Phiremock\Client\Utils\Respond;
 use function Mcustiel\Phiremock\Client\{postRequest, respond};
+use Mcustiel\Phiremock\Client\Factory;
+use Mcustiel\Phiremock\Common\Http\Implementation\GuzzleConnection;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 
 class BasicTestCest
 {
+    /** @var GuzzleConnection */
+    private $guzzle;
+
     public function _before(AcceptanceTester $I)
     {
-    }
-
-    public function _after(AcceptanceTester $I)
-    {
-        $I->haveACleanSetupInRemoteService();
+        $this->guzzle = new GuzzleConnection(new Client(['http_errors' => false]));
     }
 
     public function severalExceptatationsInOneTest(AcceptanceTester $I)
@@ -61,20 +64,21 @@ class BasicTestCest
         $I->seeRemoteServiceReceived(0, A::getRequest());
     }
 
-//     public function shouldCreateAnExpectationWithBinaryResponseTest(AcceptanceTester $I)
-//     {
-//         $responseContents = file_get_contents(Configuration::dataDir() . '/fixtures/Sparkles-12543.mp4');
-//         $I->expectARequestToRemoteServiceWithAResponse(
-//             Phiremock::on(
-//                     A::getRequest()->andUrl(Is::equalTo('/show-me-the-video'))
-//                 )->then(
-//                         Respond::withStatusCode(200)->andBinaryBody($responseContents)
-//             )
-//         );
+    public function shouldCreateAnExpectationWithBinaryResponseTest(AcceptanceTester $I)
+    {
+        $responseContents = file_get_contents(Configuration::dataDir() . '/fixtures/silhouette-1444982_640.png');
+        $I->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                    A::getRequest()->andUrl(Is::equalTo('/show-me-the-video'))
+                )->then(
+                    respond(200)->andBinaryBody($responseContents)
+            )
+        );
 
-//         $responseBody = file_get_contents('http://localhost:18080/show-me-the-video');
-//         $I->assertEquals($responseContents, $responseBody);
-//     }
+
+        $responseBody = file_get_contents('http://localhost:18080/show-me-the-video');
+        $I->assertEquals($responseContents, $responseBody);
+    }
 
     public function testGrabRequestsMadeToRemoteService(AcceptanceTester $I)
     {
@@ -94,7 +98,6 @@ class BasicTestCest
 
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(1, $requests);
-
         $first = reset($requests);
         $I->assertEquals('POST', $first->method);
         $I->assertEquals('a=b', $first->body);

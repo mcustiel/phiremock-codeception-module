@@ -18,30 +18,26 @@
 
 namespace Codeception\Module;
 
+use Codeception\Exception\ConfigurationException;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
 use Codeception\Util\ExpectationAnnotationParser;
-use GuzzleHttp\Client;
-use Mcustiel\Phiremock\Client\Phiremock as PhiremockClient;
-use Mcustiel\Phiremock\Client\Utils\RequestBuilder;
-use Mcustiel\Phiremock\Domain\Expectation;
 use Mcustiel\Phiremock\Client\Connection\Host;
 use Mcustiel\Phiremock\Client\Connection\Port;
 use Mcustiel\Phiremock\Client\Factory;
-use Codeception\Exception\ConfigurationException;
 use Mcustiel\Phiremock\Client\Utils\ConditionsBuilder;
+use Mcustiel\Phiremock\Domain\Expectation;
 
 class Phiremock extends CodeceptionModule
 {
     private const EXPECTATIONS_PATH = 'phiremock-expectations';
-    private const EXPECTATIONS_PATH_CONFIG = 'expectationsPath';
+    private const EXPECTATIONS_PATH_CONFIG = 'expectations_path';
 
     /** @var array */
     protected $config = [
-        'host'                => 'localhost',
-        'port'                => 8086,
-        'resetBeforeEachTest' => false,
-        self::EXPECTATIONS_PATH_CONFIG => ''
+        'host'                   => 'localhost',
+        'port'                   => 8086,
+        'reset_before_each_test' => false,
     ];
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
@@ -53,6 +49,15 @@ class Phiremock extends CodeceptionModule
     public function _beforeSuite($settings = [])
     {
         $this->config = array_merge($this->config, $settings);
+
+        if (isset($this->config['resetBeforeEachTest'])) {
+            $this->debug('Phiremock/DEPRECATION: resetBeforeEachTest option is deprecated and will be removed. Please use reset_before_each_test.');
+            $this->config['reset_before_each_test'] = $this->config['resetBeforeEachTest'];
+        }
+        if (isset($this->config['expectationsPath'])) {
+            $this->debug('Phiremock/DEPRECATION: expectationsPath option is deprecated and will be removed. Please use expectations_path.');
+            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $this->config['expectationsPath'];
+        }
 
         $this->setExpectationsPathConfiguration();
 
@@ -67,7 +72,7 @@ class Phiremock extends CodeceptionModule
 
     public function _before(TestInterface $test)
     {
-        if ($this->config['resetBeforeEachTest']) {
+        if ($this->config['reset_before_each_test']) {
             $this->haveACleanSetupInRemoteService();
         }
         $expectations = $this->expectationsParser->getExpectations($test);
