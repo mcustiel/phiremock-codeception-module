@@ -19,9 +19,11 @@
 namespace Codeception\Module;
 
 use Codeception\Exception\ConfigurationException;
+use Codeception\Lib\ModuleContainer;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
 use Codeception\Util\ExpectationAnnotationParser;
+use Codeception\Util\FactoryWithConfigurableHttpClient;
 use Mcustiel\Phiremock\Client\Connection\Host;
 use Mcustiel\Phiremock\Client\Connection\Port;
 use Mcustiel\Phiremock\Client\Factory;
@@ -38,6 +40,7 @@ class Phiremock extends CodeceptionModule
         'host'                   => 'localhost',
         'port'                   => 8086,
         'reset_before_each_test' => false,
+        'psr_http_client'        => 'default',
     ];
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
@@ -45,6 +48,11 @@ class Phiremock extends CodeceptionModule
 
     /** @var ExpectationAnnotationParser */
     private $expectationsParser;
+
+    public function __construct(ModuleContainer $moduleContainer, $config = null)
+    {
+        parent::__construct($moduleContainer, $config);
+    }
 
     public function _beforeSuite($settings = [])
     {
@@ -61,7 +69,7 @@ class Phiremock extends CodeceptionModule
 
         $this->setExpectationsPathConfiguration();
 
-        $this->phiremock = Factory::createDefault()->createPhiremockClient(
+        $this->phiremock = $this->createFactory()->createPhiremockClient(
             new Host($this->config['host']),
             new Port($this->config['port'])
         );
@@ -126,6 +134,18 @@ class Phiremock extends CodeceptionModule
     public function grabRequestsMadeToRemoteService(ConditionsBuilder $builder): array
     {
         return $this->phiremock->listExecutions($builder);
+    }
+
+    private function createFactory(): Factory
+    {
+        if (isset($this->config['psr_http_client'])) {
+            $psrClientConfig = $this->config['psr_http_client'];
+            if ($psrClientConfig !== 'default') {
+                $clientImplementation = $this->config['psr_http_client'];
+                return FactoryWithConfigurableHttpClient::createWithClient(new $clientImplementation());
+            }
+        }
+        return Factory::createDefault();
     }
 
     private function setExpectationsPathConfiguration(): void

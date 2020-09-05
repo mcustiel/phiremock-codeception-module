@@ -6,19 +6,16 @@ use Mcustiel\Phiremock\Client\Utils\A;
 use Mcustiel\Phiremock\Client\Utils\Is;
 use Mcustiel\Phiremock\Client\Utils\Respond;
 use function Mcustiel\Phiremock\Client\{postRequest, respond};
-use Mcustiel\Phiremock\Client\Factory;
-use Mcustiel\Phiremock\Common\Http\Implementation\GuzzleConnection;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
 
 class BasicTestCest
 {
-    /** @var GuzzleConnection */
+    /** @var Client */
     private $guzzle;
 
     public function _before(AcceptanceTester $I)
     {
-        $this->guzzle = new GuzzleConnection(new Client(['http_errors' => false]));
+        $this->guzzle = new Client(['http_errors' => false]);
     }
 
     public function severalExceptatationsInOneTest(AcceptanceTester $I)

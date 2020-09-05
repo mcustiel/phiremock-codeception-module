@@ -28,14 +28,15 @@
     "license" : "GPL-3.0-or-later",
     "require" : {
         "php" : "^7.2",
-        "mcustiel/phiremock-client": "v1.0.0-beta.1",
+        "mcustiel/phiremock-client": "dev-master",
         "codeception/codeception" : ">=2.2 <5.0",
         "codeception/lib-asserts": "^1.1"
     },
     "require-dev" : {
         "mcustiel/phiremock-codeception-extension": "dev-version-2.x",
         "mcustiel/phiremock-server": "dev-master",
-        "codeception/module-asserts": "^1.1"
+        "codeception/module-asserts": "^1.1",
+        "guzzlehttp/guzzle" : "^7.0"
     },
     "prefer-stable": true,
     "minimum-stability": "dev"
