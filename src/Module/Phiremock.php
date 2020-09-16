@@ -23,7 +23,6 @@ use Codeception\Lib\ModuleContainer;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
 use Codeception\Util\ExpectationAnnotationParser;
-use Codeception\Util\FactoryWithConfigurableHttpClient;
 use Mcustiel\Phiremock\Client\Connection\Host;
 use Mcustiel\Phiremock\Client\Connection\Port;
 use Mcustiel\Phiremock\Client\Factory;
@@ -40,7 +39,7 @@ class Phiremock extends CodeceptionModule
         'host'                   => 'localhost',
         'port'                   => 8086,
         'reset_before_each_test' => false,
-        'psr_http_client'        => 'default',
+        'client_factory'         => 'default',
     ];
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
@@ -138,11 +137,16 @@ class Phiremock extends CodeceptionModule
 
     private function createFactory(): Factory
     {
-        if (isset($this->config['psr_http_client'])) {
-            $psrClientConfig = $this->config['psr_http_client'];
-            if ($psrClientConfig !== 'default') {
-                $clientImplementation = $this->config['psr_http_client'];
-                return FactoryWithConfigurableHttpClient::createWithClient(new $clientImplementation());
+        if (isset($this->config['client_factory'])) {
+            $factoryClassConfig = $this->config['client_factory'];
+            if ($factoryClassConfig !== 'default') {
+                $factoryClassName = $this->config['client_factory'];
+                if (!is_a($factoryClassName, Factory::class, true)) {
+                    throw new ConfigurationException(
+                        sprintf('%s does not extend %s', $factoryClassName, Factory::class)
+                    );
+                }
+                return $factoryClassName::createDefault();
             }
         }
         return Factory::createDefault();

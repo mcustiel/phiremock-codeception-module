@@ -13,5 +13,4 @@ modules:
             expectationsPath: tests/_data/_unique_expectations
             port: 18080
             reset_before_each_test: true
-            psr_http_client: \GuzzleHttp\Client
-            
+            client_factory: Mcustiel\Phiremock\Codeception\Module\Tests\Helpers\FactoryWithGuzzle7

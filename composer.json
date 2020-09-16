@@ -22,6 +22,11 @@
             "Codeception\\" : "src"
         }
     },
+    "autoload-dev": {
+        "psr-4" : {
+            "Mcustiel\\Phiremock\\Codeception\\Module\\Tests\\Helpers\\": "tests/_helpers"
+        }
+    },
     "name" : "mcustiel/phiremock-codeception-module",
     "type" : "project",
     "description" : "Codeception module for PhireMock. Allows to stub remote services for HTTP requests.",
