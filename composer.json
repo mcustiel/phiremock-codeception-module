@@ -7,7 +7,7 @@
         "acceptance",
         "tests",
         "codeception",
-        "extension",
+        "module",
         "phiremock"
     ],
      "authors" : [{
