@@ -52,7 +52,7 @@ Specifies the fully qualified class name of a class which overrides default phir
 ##### Example
 ```json
 "require-dev": {
-    "mcustiel/phiremock-codeception-module": "v1.0"
+    "mcustiel/phiremock-codeception-module": "v1.0",
     "guzzlehttp/guzzle": "^7.0"
 ```
 
