@@ -139,6 +139,19 @@ class BasicTestCest
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(2, $requests);
     }
+    
+    /**
+     * @param AcceptanceTester $I
+     * @expectation("subdirectory/test_first_get")
+     */
+    public function testAnnotationInSubdirectoryIsLoaded(AcceptanceTester $I)
+    {
+        $conditionsBuilder = A::getRequest();
+        $requestBuilder = $conditionsBuilder->andMethod(Is::equalTo('GET'))->andUrl(Is::equalTo('/expectation/subdirectory'));
+        file_get_contents('http://localhost:18080/expectation/subdirectory');
+        $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
+        $I->assertCount(1, $requests);
+    }
 
     /**
      * @param AcceptanceTester $I

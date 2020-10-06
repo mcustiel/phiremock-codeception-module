@@ -134,7 +134,7 @@ Retrieves all the requests received by Phiremock server matching the one specifi
 
 ### @expectation Annotations
 
-Allows you to to set up an expectation via a json file 
+Allows you to to set up an expectation via a json file
 
 ```php
     /**
@@ -147,6 +147,18 @@ Allows you to to set up an expectation via a json file
 ```
 
 That will load by default the file at `tests/_data/phiremock-expectations/get_client_timeout.json`. The path where to place the expectations is configurable.
+
+You may use expectations placed in subdirectories
+
+```php
+    /**
+     * @expectation("edge_cases/get_client_timeout")
+     */
+    public function test(FunctionalTester $I)
+    {
+        ...
+    }
+```
 
 Multiple annotation formats are accepted
 
