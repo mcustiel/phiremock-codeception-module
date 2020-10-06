@@ -154,7 +154,7 @@ class Phiremock extends CodeceptionModule
 
     private function setExpectationsPathConfiguration(): void
     {
-        $configuredPath = $this->config[self::EXPECTATIONS_PATH_CONFIG];
+        $configuredPath = $this->config[self::EXPECTATIONS_PATH_CONFIG] ?? null;
         if (empty($configuredPath)) {
             $defaultPath = codecept_data_dir(self::EXPECTATIONS_PATH);
             if (!is_dir($defaultPath)) {
