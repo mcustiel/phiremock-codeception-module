@@ -52,8 +52,7 @@ Specifies the fully qualified class name of a class which overrides default phir
 ##### Example
 ```json
 "require-dev": {
-    "mcustiel/phiremock-codeception-extension": "v2.0",
-    "mcustiel/phiremock-server": "^1.0",
+    "mcustiel/phiremock-codeception-module": "v1.0"
     "guzzlehttp/guzzle": "^7.0"
 ```
 
@@ -134,7 +133,7 @@ Retrieves all the requests received by Phiremock server matching the one specifi
 
 ### @expectation Annotations
 
-Allows you to to set up an expectation via a json file
+Allows you to set up an expectation via a json file
 
 ```php
     /**
