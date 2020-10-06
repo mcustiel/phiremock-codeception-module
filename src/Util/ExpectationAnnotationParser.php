@@ -43,7 +43,7 @@ class ExpectationAnnotationParser
     public function parseExpectation(string $expectationAnnotation): string
     {
         $matches = [];
-        $expectationRegex = '/\(?\"?(?<filePath>[a-zA-Z0-9_]+)(.json)?\"?\)?/';
+        $expectationRegex = '/\(?\"?(?<filePath>[a-zA-Z0-9_\\/]+)(.json)?\"?\)?/';
         preg_match($expectationRegex, $expectationAnnotation, $matches);
 
         if (empty($matches)) {
