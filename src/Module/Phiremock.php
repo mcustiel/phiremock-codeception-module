@@ -40,6 +40,7 @@ class Phiremock extends CodeceptionModule
         'port'                   => 8086,
         'reset_before_each_test' => false,
         'client_factory'         => 'default',
+        self::EXPECTATIONS_PATH_CONFIG => null,
     ];
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
