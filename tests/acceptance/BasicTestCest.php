@@ -1,12 +1,14 @@
 <?php
 
 use Codeception\Configuration;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use Mcustiel\Phiremock\Client\Phiremock;
+use function Mcustiel\Phiremock\Client\postRequest;
+use function Mcustiel\Phiremock\Client\respond;
 use Mcustiel\Phiremock\Client\Utils\A;
 use Mcustiel\Phiremock\Client\Utils\Is;
 use Mcustiel\Phiremock\Client\Utils\Respond;
-use function Mcustiel\Phiremock\Client\{postRequest, respond};
-use GuzzleHttp\Client;
 
 class BasicTestCest
 {
@@ -15,7 +17,12 @@ class BasicTestCest
 
     public function _before(AcceptanceTester $I)
     {
-        $this->guzzle = new Client(['http_errors' => false]);
+        $this->guzzle = new Client(
+            [
+                'base_uri'    => 'http://localhost:18080',
+                'http_errors' => false
+            ]
+        );
     }
 
     public function severalExceptatationsInOneTest(AcceptanceTester $I)
@@ -49,7 +56,7 @@ class BasicTestCest
             )
         );
         foreach (['potato', 'tomato', 'banana', 'coconut'] as $item) {
-            $response = file_get_contents('http://localhost:18080/' . $item);
+            $response = (string) $this->guzzle->get("/{$item}")->getBody();
             $I->assertEquals('I am a ' . $item, $response);
         }
         $I->seeRemoteServiceReceived(4, A::getRequest());
@@ -61,19 +68,37 @@ class BasicTestCest
         $I->seeRemoteServiceReceived(0, A::getRequest());
     }
 
+    public function shouldSetTheScenarioState(AcceptanceTester $I): void
+    {
+        $I->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                A::getRequest()
+                    ->andUrl(Is::equalTo('/potato'))
+                    ->andScenarioState('tomatoScenario', 'potatoState')
+            )->then(
+                Respond::withStatusCode(203)->andBody('I am a potato')
+            )
+        );
+        $response = $this->guzzle->get('/potato');
+        $I->assertSame(404, $response->getStatusCode());
+        $I->setScenarioState('tomatoScenario', 'potatoState');
+        $response = $this->guzzle->get('/potato');
+        $I->assertSame(203, $response->getStatusCode());
+        $I->assertSame('I am a potato', (string) $response->getBody());
+    }
+
     public function shouldCreateAnExpectationWithBinaryResponseTest(AcceptanceTester $I)
     {
         $responseContents = file_get_contents(Configuration::dataDir() . '/fixtures/silhouette-1444982_640.png');
         $I->expectARequestToRemoteServiceWithAResponse(
             Phiremock::on(
-                    A::getRequest()->andUrl(Is::equalTo('/show-me-the-video'))
-                )->then(
-                    respond(200)->andBinaryBody($responseContents)
+                A::getRequest()->andUrl(Is::equalTo('/show-me-the-video'))
+            )->then(
+                respond(200)->andBinaryBody($responseContents)
             )
         );
 
-
-        $responseBody = file_get_contents('http://localhost:18080/show-me-the-video');
+        $responseBody = (string) $this->guzzle->get('/show-me-the-video')->getBody();
         $I->assertEquals($responseContents, $responseBody);
     }
 
@@ -84,14 +109,13 @@ class BasicTestCest
             Phiremock::on($requestBuilder)->then(respond(200))
         );
 
-        $options = array(
-            'http' => array(
-                'header'  => 'Content-Type: application/x-www-form-urlencoded',
-                'method'  => 'POST',
-                'content' => http_build_query(['a' => 'b'])
-            )
+        $request = new Request(
+            'POST',
+            '/some/url',
+            ['Content-Type' => 'application/x-www-form-urlencoded'],
+            http_build_query(['a' => 'b'])
         );
-        file_get_contents('http://localhost:18080/some/url', false, stream_context_create($options));
+        $this->guzzle->send($request);
 
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(1, $requests);
@@ -101,7 +125,7 @@ class BasicTestCest
 
         $headers = (array) $first->headers;
         $expectedSubset = [
-            'Host' => ['localhost:18080'],
+            'Host'         => ['localhost:18080'],
             'Content-Type' => ['application/x-www-form-urlencoded']
         ];
 
@@ -118,12 +142,12 @@ class BasicTestCest
     public function testAnnotationExpectationIsLoaded(AcceptanceTester $I)
     {
         $requestBuilder = A::getRequest()->andUrl(Is::equalTo('/expectation/1'));
-        $response = file_get_contents('http://localhost:18080/expectation/1');
+        $response = (string) $this->guzzle->get('/expectation/1')->getBody();
 
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(1, $requests);
 
-        $I->assertEquals("response", $response);
+        $I->assertEquals('response', $response);
     }
 
     /**
@@ -134,12 +158,12 @@ class BasicTestCest
     public function testMultipleAnnotationsAreLoaded(AcceptanceTester $I)
     {
         $requestBuilder = A::getRequest()->andUrl(Is::matching('/\\/expectation\\/\\d+/'));
-        file_get_contents('http://localhost:18080/expectation/1');
-        file_get_contents('http://localhost:18080/expectation/2');
+        $this->guzzle->get('/expectation/1');
+        $this->guzzle->get('/expectation/2');
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(2, $requests);
     }
-    
+
     /**
      * @param AcceptanceTester $I
      * @expectation("subdirectory/test_first_get")
@@ -148,7 +172,8 @@ class BasicTestCest
     {
         $conditionsBuilder = A::getRequest();
         $requestBuilder = $conditionsBuilder->andMethod(Is::equalTo('GET'))->andUrl(Is::equalTo('/expectation/subdirectory'));
-        file_get_contents('http://localhost:18080/expectation/subdirectory');
+        $responseBody = (string) $this->guzzle->get('/expectation/subdirectory')->getBody();
+        $I->assertSame('response', $responseBody);
         $requests = $I->grabRequestsMadeToRemoteService($requestBuilder);
         $I->assertCount(1, $requests);
     }

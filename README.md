@@ -131,6 +131,13 @@ Retrieves all the requests received by Phiremock server matching the one specifi
     $I->grabRequestsMadeToRemoteService(getRequest()->andUrl(isEqualTo('/some/url')));
 ```
 
+### setScenarioState
+Forces the state of a scenario.
+
+```php
+    $I->setScenarioState('scenarioName', 'newScenarioState');
+```
+
 ### @expectation Annotations
 
 Allows you to set up an expectation via a json file

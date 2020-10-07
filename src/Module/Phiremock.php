@@ -36,10 +36,10 @@ class Phiremock extends CodeceptionModule
 
     /** @var array */
     protected $config = [
-        'host'                   => 'localhost',
-        'port'                   => 8086,
-        'reset_before_each_test' => false,
-        'client_factory'         => 'default',
+        'host'                         => 'localhost',
+        'port'                         => 8086,
+        'reset_before_each_test'       => false,
+        'client_factory'               => 'default',
         self::EXPECTATIONS_PATH_CONFIG => null,
     ];
 
@@ -134,6 +134,11 @@ class Phiremock extends CodeceptionModule
     public function grabRequestsMadeToRemoteService(ConditionsBuilder $builder): array
     {
         return $this->phiremock->listExecutions($builder);
+    }
+
+    public function setScenarioState(string $name, string $state): void
+    {
+        $this->phiremock->setScenarioState($name, $state);
     }
 
     private function createFactory(): Factory
