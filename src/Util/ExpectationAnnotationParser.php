@@ -1,10 +1,11 @@
 <?php
 
-namespace Codeception\Util;
+namespace Mcustiel\Phiremock\Codeception\Util;
 
 use Codeception\Exception\ParseException;
 use Codeception\Test\Cest;
 use Codeception\TestInterface;
+use Codeception\Util\Annotation;
 
 class ExpectationAnnotationParser
 {

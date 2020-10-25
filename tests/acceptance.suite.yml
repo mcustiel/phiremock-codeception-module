@@ -14,3 +14,15 @@ modules:
             port: 18080
             reset_before_each_test: true
             client_factory: Mcustiel\Phiremock\Codeception\Module\Tests\Helpers\FactoryWithGuzzle7
+            extra_connections:
+              secure:
+                expectations_path: tests/_data/_unique_expectations
+                host: 127.0.0.1
+                port: 18081
+                reset_before_each_test: false
+                secure: true
+                client_factory: Mcustiel\Phiremock\Codeception\Module\Tests\Helpers\FactoryWithGuzzle7
+              dummy:
+                expectations_path: tests/_data/_unique_expectations
+                port: 18080
+                client_factory: Mcustiel\Phiremock\Codeception\Module\Tests\Helpers\FactoryWithGuzzle7

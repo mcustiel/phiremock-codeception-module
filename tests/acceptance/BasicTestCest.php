@@ -15,6 +15,9 @@ class BasicTestCest
     /** @var Client */
     private $guzzle;
 
+    /** @var Client */
+    private $guzzleSecure;
+
     public function _before(AcceptanceTester $I)
     {
         $this->guzzle = new Client(
@@ -23,49 +26,19 @@ class BasicTestCest
                 'http_errors' => false
             ]
         );
+//         $this->guzzleSecure = new Client(
+//             [
+//                 'base_uri'    => 'https://localhost:18081',
+//                 'http_errors' => false,
+//                 'verify'      => false,
+//             ]
+//         );
     }
 
     public function severalExceptatationsInOneTest(AcceptanceTester $I)
     {
-        $I->expectARequestToRemoteServiceWithAResponse(
-            Phiremock::on(
-                A::getRequest()->andUrl(Is::equalTo('/potato'))
-            )->then(
-                Respond::withStatusCode(203)->andBody('I am a potato')
-            )
-        );
-        $I->expectARequestToRemoteServiceWithAResponse(
-            Phiremock::on(
-                A::getRequest()->andUrl(Is::equalTo('/tomato'))
-            )->then(
-                Respond::withStatusCode(203)->andBody('I am a tomato')
-            )
-        );
-        $I->expectARequestToRemoteServiceWithAResponse(
-            Phiremock::on(
-                A::getRequest()->andUrl(Is::equalTo('/coconut'))
-            )->then(
-                Respond::withStatusCode(203)->andBody('I am a coconut')
-            )
-        );
-        $I->expectARequestToRemoteServiceWithAResponse(
-            Phiremock::on(
-                A::getRequest()->andUrl(Is::equalTo('/banana'))
-            )->then(
-                Respond::withStatusCode(203)->andBody('I am a banana')
-            )
-        );
-        foreach (['potato', 'tomato', 'banana', 'coconut'] as $item) {
-            $response = (string) $this->guzzle->get("/{$item}")->getBody();
-            $I->assertEquals('I am a ' . $item, $response);
-        }
-        $I->seeRemoteServiceReceived(4, A::getRequest());
-        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/potato')));
-        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/tomato')));
-        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/banana')));
-        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/coconut')));
-        $I->didNotReceiveRequestsInRemoteService();
-        $I->seeRemoteServiceReceived(0, A::getRequest());
+        $this->executeBaseTest($I, $I->takeConnection('default'));
+        // $this->executeBaseTest($I, $I->takeConnection('secure'));
     }
 
     public function shouldSetTheScenarioState(AcceptanceTester $I): void
@@ -189,5 +162,48 @@ class BasicTestCest
      */
     public function testAnnotationFormats(AcceptanceTester $I)
     {
+    }
+
+    private function executeBaseTest(AcceptanceTester $I, \Codeception\Module\Phiremock $module): void
+    {
+        $module->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                A::getRequest()->andUrl(Is::equalTo('/potato'))
+            )->then(
+                Respond::withStatusCode(203)->andBody('I am a potato')
+            )
+        );
+        $module->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                A::getRequest()->andUrl(Is::equalTo('/tomato'))
+            )->then(
+                Respond::withStatusCode(203)->andBody('I am a tomato')
+            )
+        );
+        $module->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                A::getRequest()->andUrl(Is::equalTo('/coconut'))
+            )->then(
+                Respond::withStatusCode(203)->andBody('I am a coconut')
+            )
+        );
+        $module->expectARequestToRemoteServiceWithAResponse(
+            Phiremock::on(
+                A::getRequest()->andUrl(Is::equalTo('/banana'))
+            )->then(
+                Respond::withStatusCode(203)->andBody('I am a banana')
+            )
+        );
+        foreach (['potato', 'tomato', 'banana', 'coconut'] as $item) {
+            $response = (string) $this->guzzle->get("/{$item}")->getBody();
+            $I->assertEquals('I am a ' . $item, $response);
+        }
+        $I->seeRemoteServiceReceived(4, A::getRequest());
+        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/potato')));
+        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/tomato')));
+        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/banana')));
+        $I->seeRemoteServiceReceived(1, A::getRequest()->andUrl(Is::equalTo('/coconut')));
+        $I->didNotReceiveRequestsInRemoteService();
+        $I->seeRemoteServiceReceived(0, A::getRequest());
     }
 }

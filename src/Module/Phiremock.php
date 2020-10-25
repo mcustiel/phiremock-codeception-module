@@ -18,30 +18,19 @@
 
 namespace Codeception\Module;
 
-use Codeception\Exception\ConfigurationException;
 use Codeception\Lib\ModuleContainer;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
-use Codeception\Util\ExpectationAnnotationParser;
-use Mcustiel\Phiremock\Client\Connection\Host;
-use Mcustiel\Phiremock\Client\Connection\Port;
-use Mcustiel\Phiremock\Client\Factory;
 use Mcustiel\Phiremock\Client\Utils\ConditionsBuilder;
+use Mcustiel\Phiremock\Client\Utils\Http\Scheme;
+use Mcustiel\Phiremock\Codeception\Util\Config;
+use Mcustiel\Phiremock\Codeception\Util\ExpectationAnnotationParser;
 use Mcustiel\Phiremock\Domain\Expectation;
 
 class Phiremock extends CodeceptionModule
 {
-    private const EXPECTATIONS_PATH = 'phiremock-expectations';
-    private const EXPECTATIONS_PATH_CONFIG = 'expectations_path';
-
     /** @var array */
-    protected $config = [
-        'host'                         => 'localhost',
-        'port'                         => 8086,
-        'reset_before_each_test'       => false,
-        'client_factory'               => 'default',
-        self::EXPECTATIONS_PATH_CONFIG => null,
-    ];
+    protected $config = Config::DEFAULT_CONFIG;
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
     private $phiremock;
@@ -49,38 +38,42 @@ class Phiremock extends CodeceptionModule
     /** @var ExpectationAnnotationParser */
     private $expectationsParser;
 
+    /** @var Config */
+    private $moduleConfig;
+
+    /** @var Phiremock[] */
+    private $extraConnections = [];
+
     public function __construct(ModuleContainer $moduleContainer, $config = null)
     {
         parent::__construct($moduleContainer, $config);
+        $this->moduleConfig = new Config($this->config);
+        foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
+            $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray());
+        }
     }
 
     public function _beforeSuite($settings = [])
     {
-        $this->config = array_merge($this->config, $settings);
+        $this->config = array_merge($this->moduleConfig->asArray(), $settings);
+        $this->moduleConfig = new Config($this->config);
 
-        if (isset($this->config['resetBeforeEachTest'])) {
-            $this->debug('Phiremock/DEPRECATION: resetBeforeEachTest option is deprecated and will be removed. Please use reset_before_each_test.');
-            $this->config['reset_before_each_test'] = $this->config['resetBeforeEachTest'];
-        }
-        if (isset($this->config['expectationsPath'])) {
-            $this->debug('Phiremock/DEPRECATION: expectationsPath option is deprecated and will be removed. Please use expectations_path.');
-            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $this->config['expectationsPath'];
-        }
-
-        $this->setExpectationsPathConfiguration();
-
-        $this->phiremock = $this->createFactory()->createPhiremockClient(
-            new Host($this->config['host']),
-            new Port($this->config['port'])
+        $this->phiremock = $this->moduleConfig->getClientFactory()->createPhiremockClient(
+            $this->moduleConfig->getHost(),
+            $this->moduleConfig->getPort(),
+            new Scheme($this->moduleConfig->isSecure() ? Scheme::HTTPS: Scheme::HTTP)
         );
         $this->expectationsParser = new ExpectationAnnotationParser(
-            $this->config[self::EXPECTATIONS_PATH_CONFIG]
+            $this->moduleConfig->getExpectationsPath()
         );
+        foreach ($this->extraConnections as $module) {
+            $module->_beforeSuite($settings);
+        }
     }
 
     public function _before(TestInterface $test)
     {
-        if ($this->config['reset_before_each_test']) {
+        if ($this->moduleConfig->isResetBeforeEachTest()) {
             $this->haveACleanSetupInRemoteService();
         }
         $expectations = $this->expectationsParser->getExpectations($test);
@@ -92,6 +85,19 @@ class Phiremock extends CodeceptionModule
             }
         }
         parent::_before($test);
+    }
+
+    public function takeConnection(string $name): Phiremock
+    {
+        if ($name === 'default') {
+            return $this;
+        }
+        if (!isset($this->extraConnections[$name])) {
+            throw new \InvalidArgumentException(
+                sprintf('Connection %s does not exist', $name)
+            );
+        }
+        return $this->extraConnections[$name];
     }
 
     public function expectARequestToRemoteServiceWithAResponse(Expectation $expectation): void
@@ -139,43 +145,5 @@ class Phiremock extends CodeceptionModule
     public function setScenarioState(string $name, string $state): void
     {
         $this->phiremock->setScenarioState($name, $state);
-    }
-
-    private function createFactory(): Factory
-    {
-        if (isset($this->config['client_factory'])) {
-            $factoryClassConfig = $this->config['client_factory'];
-            if ($factoryClassConfig !== 'default') {
-                $factoryClassName = $this->config['client_factory'];
-                if (!is_a($factoryClassName, Factory::class, true)) {
-                    throw new ConfigurationException(
-                        sprintf('%s does not extend %s', $factoryClassName, Factory::class)
-                    );
-                }
-                return $factoryClassName::createDefault();
-            }
-        }
-        return Factory::createDefault();
-    }
-
-    private function setExpectationsPathConfiguration(): void
-    {
-        $configuredPath = $this->config[self::EXPECTATIONS_PATH_CONFIG] ?? null;
-        if (empty($configuredPath)) {
-            $defaultPath = codecept_data_dir(self::EXPECTATIONS_PATH);
-            if (!is_dir($defaultPath)) {
-                $created = mkdir($defaultPath);
-                if (!$created) {
-                    throw new \RuntimeException('Could not create directory ' . $defaultPath);
-                }
-            }
-            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $defaultPath;
-        } elseif (!is_dir($configuredPath)) {
-            $configuredPath = codecept_absolute_path($configuredPath);
-            if (!is_dir($configuredPath)) {
-                throw new ConfigurationException('Could not find the configured expectations path: ' . $configuredPath);
-            }
-            $this->config[self::EXPECTATIONS_PATH_CONFIG] = $configuredPath;
-        }
     }
 }
