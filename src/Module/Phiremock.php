@@ -121,7 +121,13 @@ class Phiremock extends CodeceptionModule
         $this->phiremock->resetScenarios();
     }
 
+    /** @deprecated Name is confusing, sounds like an assertion */
     public function didNotReceiveRequestsInRemoteService(): void
+    {
+        $this->dontHaveLoggedRequestsToRemoteService();
+    }
+
+    public function dontHaveLoggedRequestsToRemoteService(): void
     {
         $this->phiremock->resetRequestsCounter();
     }
