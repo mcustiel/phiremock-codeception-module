@@ -178,5 +178,6 @@ Multiple annotation formats are accepted
 
 ## See also:
 
-Phiremock Client: https://github.com/mcustiel/phiremock-client
-Examples in tests: https://github.com/mcustiel/phiremock-codeception-module/tree/master/tests/acceptance
+* Phiremock Client: https://github.com/mcustiel/phiremock-client
+* Phiremock Codeception Extension: https://github.com/mcustiel/phiremock-codeception-extension
+* Examples in tests: https://github.com/mcustiel/phiremock-codeception-module/tree/master/tests/acceptance
