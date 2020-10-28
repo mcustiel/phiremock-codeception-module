@@ -20,6 +20,7 @@ namespace Codeception\Module;
 
 use Codeception\Exception\ConfigurationException;
 use Codeception\Exception\ModuleException;
+use Codeception\Exception\ParseException;
 use Codeception\Lib\ModuleContainer;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
@@ -98,13 +99,17 @@ class Phiremock extends CodeceptionModule
         if ($this->moduleConfig->isResetBeforeEachTest()) {
             $this->haveACleanSetupInRemoteService();
         }
-        $expectations = $this->expectationsParser->getExpectations($test);
-        if (!empty($expectations)) {
-            foreach ($expectations as $expectation) {
-                $this->phiremock->createExpectationFromJson(
-                    file_get_contents($expectation)
-                );
+        try {
+            $expectations = $this->expectationsParser->getExpectations($test);
+            if (!empty($expectations)) {
+                foreach ($expectations as $expectation) {
+                    $this->phiremock->createExpectationFromJson(
+                        file_get_contents($expectation)
+                    );
+                }
             }
+        } catch (ParseException $exception) {
+            $this->debug('Error parsing expectation annotations: ' . $exception->getMessage());
         }
         parent::_before($test);
         if (!$this->isExtraConfig) {
