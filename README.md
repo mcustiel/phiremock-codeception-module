@@ -25,31 +25,78 @@ modules:
             reset_before_each_test: false # if set to true, executes `$I->haveACleanSetupInRemoteService` before each test. Defaults to false
             expectations_path: /path/to/my/expectation/json/files # Defaults to codeception_dir/_data/phiremock-expectations
             client_factory: \My\ClientFactory # Defaults to 'default'
+            secure: true # Default: false
+            extra_connections:  [] # Default: empty array
 ```
 
 ### Options
 
 #### host
 Specifies the host where phiremock-server is listening for requests.
+
 **Default:** localhost
 
 #### port
 Specifies the port where phiremock-server is listening for requests.
+
 **Default:** 8086
 
 #### reset_before_each_test
 Determines whether or not phiremock-server must be reset before each test.
+
 **Default:** false
 
 #### expectations_path
 Specifies the path where expectation json files are located. The files can then be referenced using annotations and will be loaded automatically.
+
 **Default:** codeception_dir/_data/phiremock-expectations
+
+#### secure
+A boolean specifying if the connection is secure or not. If it's secure, the request is done through https, otherwise it's done through http. 
+
+**Default:** false. The requests to phiremock-client are done through http.
+
+#### extra_connections
+An list of objects specifying the parameters to request other phiremock-servers. 
+This is useful if you want to have 2 phiremock instances, one listening for http connections, and the other listening for https connections.
+
+**Default:** An empty list, meaning that no other phiremock servers are requested.
+
+##### Example
+
+```yaml
+modules:
+    enabled:
+        - Phiremock:
+            host: phiremock-myhost.dev
+            port: 18080 
+            secure: false 
+            extra_connections: 
+                secure-host:
+                    host: phiremock-myhost.dev
+                    port: 18081 
+                    secure: true
+```
+Then in the code you can use each connection by name as follows:
+
+```php
+<?php
+$I->takeConnection('secure-host')->reset();
+```
+
+The default connection is called 'default' and you can also take it:
+
+```php
+$I->takeConnection('default')->reset();
+```
 
 #### client_factory
 Specifies the fully qualified class name of a class which overrides default phiremock-client factory. This is useful if you want to avoid using Guzzle HttpClient v6 (the one supported by default in phiremock-client).
+
 **Default:** default
 
 ##### Example
+
 ```json
 "require-dev": {
     "mcustiel/phiremock-codeception-module": "v1.0",
@@ -136,6 +183,13 @@ Forces the state of a scenario.
 
 ```php
     $I->setScenarioState('scenarioName', 'newScenarioState');
+```
+
+### takeConnection
+Allows to use several connections to different phiremock servers.
+
+```php
+    $I->takeConnection('connectionName');
 ```
 
 ### @expectation Annotations

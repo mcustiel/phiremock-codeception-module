@@ -19,6 +19,7 @@
 namespace Codeception\Module;
 
 use Codeception\Exception\ConfigurationException;
+use Codeception\Exception\ModuleException;
 use Codeception\Lib\ModuleContainer;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
@@ -48,12 +49,22 @@ class Phiremock extends CodeceptionModule
     /** @var Phiremock[] */
     private $extraConnections = [];
 
-    public function __construct(ModuleContainer $moduleContainer, $config = null)
+    /** @var bool */
+    private $isExtraConfig;
+
+    /** @throws ModuleException */
+    public function __construct(ModuleContainer $moduleContainer, $config = null, bool $isExtra = false)
     {
         parent::__construct($moduleContainer, $config);
+        $this->isExtraConfig = $isExtra;
         $this->moduleConfig = new Config($this->config, $this->createDebugMethod());
-        foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
-            $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray());
+        if (!$this->isExtraConfig) {
+            foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
+                if ($name === 'default') {
+                    throw new ModuleException($this, 'The connection name "default" is reserved and can not be used for an extra connection');
+                }
+                $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray(), true);
+            }
         }
     }
 
@@ -74,8 +85,10 @@ class Phiremock extends CodeceptionModule
         $this->expectationsParser = new ExpectationAnnotationParser(
             $this->moduleConfig->getExpectationsPath()
         );
-        foreach ($this->extraConnections as $module) {
-            $module->_beforeSuite($settings);
+        if (!$this->isExtraConfig) {
+            foreach ($this->extraConnections as $module) {
+                $module->_beforeSuite($settings);
+            }
         }
     }
 
@@ -94,10 +107,19 @@ class Phiremock extends CodeceptionModule
             }
         }
         parent::_before($test);
+        if (!$this->isExtraConfig) {
+            foreach ($this->extraConnections as $connection) {
+                $connection->_before($test);
+            }
+        }
     }
 
+    /** @throws ModuleException */
     public function takeConnection(string $name): Phiremock
     {
+        if ($this->isExtraConfig) {
+            throw new ModuleException($this, 'Trying to take a connection from an extra connection');
+        }
         if ($name === 'default') {
             return $this;
         }

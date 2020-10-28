@@ -16,7 +16,6 @@ modules:
             client_factory: Mcustiel\Phiremock\Codeception\Module\Tests\Helpers\FactoryWithGuzzle7
             extra_connections:
               secure:
-                expectations_path: tests/_data/_unique_expectations
                 host: 127.0.0.1
                 port: 18081
                 reset_before_each_test: false
