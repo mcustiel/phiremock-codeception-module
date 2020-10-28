@@ -12,11 +12,6 @@ class ExpectationAnnotationParser
     /** @var array */
     private $expectationsPath;
 
-    /**
-     * ExpectationAnnotationParser constructor.
-     *
-     * @throws \Codeception\Exception\ConfigurationException
-     */
     public function __construct(string $expectationsPath)
     {
         $this->expectationsPath = $expectationsPath;
@@ -37,10 +32,7 @@ class ExpectationAnnotationParser
         return array_map([$this, 'parseExpectation'], $expectations);
     }
 
-    /**
-     * @throws ParseException
-     * @return string
-     */
+    /** @throws ParseException */
     public function parseExpectation(string $expectationAnnotation): string
     {
         $matches = [];

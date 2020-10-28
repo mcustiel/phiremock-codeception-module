@@ -2,6 +2,7 @@
 
 namespace Mcustiel\Phiremock\Codeception\Util;
 
+use Codeception\Exception\ConfigurationException;
 use Mcustiel\Phiremock\Client\Connection\Host;
 use Mcustiel\Phiremock\Client\Connection\Port;
 use Mcustiel\Phiremock\Client\Factory;
@@ -35,10 +36,12 @@ class Config
     private $extraConnections;
     /** @var bool */
     private $secure;
+    /** @var callable */
+    private $output;
 
-    public function __construct(array $config)
+    public function __construct(array $config, callable $output)
     {
-        $this->extraConnections = [];
+        $this->output = $output;
         $this->setResetBeforeEachTest($config);
         $this->expectationsPath = $this->getExpectationsPathConfiguration($config);
         $this->host = new Host($config['host']);
@@ -46,6 +49,7 @@ class Config
         $this->clientFactory = $this->getFactoryClass($config);
         $this->initExtraConnections($config);
         $this->secure = $config['secure'];
+
     }
 
     /** @return Config[] */
@@ -97,6 +101,7 @@ class Config
         ];
     }
 
+    /** @throws ConfigurationException */
     private function getFactoryClass(array $config): FactoryClass
     {
         if (!isset($config['client_factory'])) {
@@ -108,7 +113,10 @@ class Config
     private function getExpectationsPathConfiguration(array $config): DirectoryPath
     {
         if (isset($config['expectationsPath'])) {
-            echo 'Phiremock/DEPRECATION: expectationsPath option is deprecated and will be removed. Please use expectations_path.';
+            call_user_func(
+                $this->output,
+                'Phiremock/DEPRECATION: expectationsPath option is deprecated and will be removed. Please use expectations_path.'
+            );
             $config[self::EXPECTATIONS_PATH_CONFIG] = $config['expectationsPath'];
         }
         $configuredPath = $config[self::EXPECTATIONS_PATH_CONFIG] ?? null;
@@ -122,7 +130,10 @@ class Config
     private function setResetBeforeEachTest($config)
     {
         if (isset($config['resetBeforeEachTest'])) {
-            $this->debug('Phiremock/DEPRECATION: resetBeforeEachTest option is deprecated and will be removed. Please use reset_before_each_test.');
+            call_user_func(
+                $this->output,
+                'Phiremock/DEPRECATION: resetBeforeEachTest option is deprecated and will be removed. Please use reset_before_each_test.'
+            );
             $config['reset_before_each_test'] = $config['resetBeforeEachTest'];
         }
         $this->resetBeforeEachTest = $config['reset_before_each_test'];
@@ -130,11 +141,12 @@ class Config
 
     private function initExtraConnections(array $config): void
     {
+        $this->extraConnections = [];
         if (isset($config['extra_connections'])) {
             foreach ($config['extra_connections'] as $connectionName => $extraConnection) {
                 $connectionConfig = $extraConnection + self::DEFAULT_CONFIG;
                 unset($connectionConfig['extra_connections']);
-                $this->extraConnections[$connectionName] = new Config($connectionConfig);
+                $this->extraConnections[$connectionName] = new Config($connectionConfig, $this->output);
             }
         }
     }
