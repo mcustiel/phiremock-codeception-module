@@ -21,6 +21,7 @@ class ExpectationAnnotationParser
      * @param TestInterface|Cest $test
      *
      * @return array
+     * @throws ParseException
      */
     public function getExpectations(TestInterface $test): array
     {
