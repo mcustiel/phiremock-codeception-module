@@ -9,7 +9,7 @@ use Codeception\Util\Annotation;
 
 class ExpectationAnnotationParser
 {
-    /** @var array */
+    /** @var string */
     private $expectationsPath;
 
     public function __construct(string $expectationsPath)
@@ -21,7 +21,6 @@ class ExpectationAnnotationParser
      * @param TestInterface|Cest $test
      *
      * @return array
-     * @throws ParseException
      */
     public function getExpectations(TestInterface $test): array
     {

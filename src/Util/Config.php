@@ -39,6 +39,7 @@ class Config
     /** @var callable */
     private $output;
 
+    /** @throws ConfigurationException */
     public function __construct(array $config, callable $output)
     {
         $this->output = $output;
@@ -110,6 +111,7 @@ class Config
         return new FactoryClass($config['client_factory']);
     }
 
+    /** @throws ConfigurationException */
     private function getExpectationsPathConfiguration(array $config): DirectoryPath
     {
         if (isset($config['expectationsPath'])) {
@@ -139,6 +141,7 @@ class Config
         $this->resetBeforeEachTest = $config['reset_before_each_test'];
     }
 
+    /** @throws ConfigurationException */
     private function initExtraConnections(array $config): void
     {
         $this->extraConnections = [];
