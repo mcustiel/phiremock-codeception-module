@@ -59,14 +59,7 @@ class Phiremock extends CodeceptionModule
         parent::__construct($moduleContainer, $config);
         $this->isExtraConfig = $isExtra;
         $this->moduleConfig = new Config($this->config, $this->createDebugMethod());
-        if (!$this->isExtraConfig) {
-            foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
-                if ($name === 'default') {
-                    throw new ModuleException($this, 'The connection name "default" is reserved and can not be used for an extra connection');
-                }
-                $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray(), true);
-            }
-        }
+        $this->setupExtraConnections();
     }
 
     /**
@@ -86,37 +79,16 @@ class Phiremock extends CodeceptionModule
         $this->expectationsParser = new ExpectationAnnotationParser(
             $this->moduleConfig->getExpectationsPath()
         );
-        if (!$this->isExtraConfig) {
-            foreach ($this->extraConnections as $module) {
-                $module->_beforeSuite($settings);
-            }
-        }
+        $this->extraConfigsBeforeSuite($settings);
     }
 
     /** @throws ClientExceptionInterface */
     public function _before(TestInterface $test)
     {
-        if ($this->moduleConfig->isResetBeforeEachTest()) {
-            $this->haveACleanSetupInRemoteService();
-        }
-        try {
-            $expectations = $this->expectationsParser->getExpectations($test);
-            if (!empty($expectations)) {
-                foreach ($expectations as $expectation) {
-                    $this->phiremock->createExpectationFromJson(
-                        file_get_contents($expectation)
-                    );
-                }
-            }
-        } catch (ParseException $exception) {
-            $this->debug('Error parsing expectation annotations: ' . $exception->getMessage());
-        }
+        $this->resetBeforeTestsIfConfigured();
+        $this->loadExpectations($test);
         parent::_before($test);
-        if (!$this->isExtraConfig) {
-            foreach ($this->extraConnections as $connection) {
-                $connection->_before($test);
-            }
-        }
+        $this->extraConfigsBefore($test);
     }
 
     /** @throws ModuleException */
@@ -204,5 +176,62 @@ class Phiremock extends CodeceptionModule
         return function (string $msg) : void {
             $this->debug($msg);
         };
+    }
+
+    /** @throws ConfigurationException */
+    private function extraConfigsBeforeSuite(array $settings): void
+    {
+        if (!$this->isExtraConfig) {
+            foreach ($this->extraConnections as $module) {
+                $module->_beforeSuite($settings);
+            }
+        }
+    }
+
+    /** @throws ClientExceptionInterface */
+    private function resetBeforeTestsIfConfigured(): void
+    {
+        if ($this->moduleConfig->isResetBeforeEachTest()) {
+            $this->haveACleanSetupInRemoteService();
+        }
+    }
+
+    /** @throws ClientExceptionInterface */
+    private function loadExpectations(TestInterface $test): void
+    {
+        try {
+            $expectations = $this->expectationsParser->getExpectations($test);
+            if (!empty($expectations)) {
+                foreach ($expectations as $expectation) {
+                    $this->phiremock->createExpectationFromJson(
+                        file_get_contents($expectation)
+                    );
+                }
+            }
+        } catch (ParseException $exception) {
+            $this->debug('Error parsing expectation annotations: ' . $exception->getMessage());
+        }
+    }
+
+    /** @throws ClientExceptionInterface */
+    private function extraConfigsBefore(TestInterface $test): void
+    {
+        if (!$this->isExtraConfig) {
+            foreach ($this->extraConnections as $connection) {
+                $connection->_before($test);
+            }
+        }
+    }
+
+    protected function setupExtraConnections(): void
+    {
+        if (!$this->isExtraConfig) {
+            foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
+                if ($name === 'default') {
+                    throw new ModuleException($this, 'The connection name "default" is reserved and can not be used for an extra connection');
+                }
+                $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray(), true);
+            }
+        }
     }
 }
