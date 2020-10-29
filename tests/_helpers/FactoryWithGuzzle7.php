@@ -9,6 +9,12 @@ class FactoryWithGuzzle7 extends Factory
 {
     public function createRemoteConnection(): ClientInterface
     {
-        return new GuzzleHttp\Client(['allow_redirects' => false]);
+        return new GuzzleHttp\Client(
+            [
+                'allow_redirects' => false,
+                'http_errors' => false,
+                'verify'      => false,
+            ]
+        );
     }
 }

@@ -1,21 +1,17 @@
 <?php
 
-namespace Codeception\Util;
+namespace Mcustiel\Phiremock\Codeception\Util;
 
 use Codeception\Exception\ParseException;
 use Codeception\Test\Cest;
 use Codeception\TestInterface;
+use Codeception\Util\Annotation;
 
 class ExpectationAnnotationParser
 {
-    /** @var array */
+    /** @var string */
     private $expectationsPath;
 
-    /**
-     * ExpectationAnnotationParser constructor.
-     *
-     * @throws \Codeception\Exception\ConfigurationException
-     */
     public function __construct(string $expectationsPath)
     {
         $this->expectationsPath = $expectationsPath;
@@ -36,10 +32,7 @@ class ExpectationAnnotationParser
         return array_map([$this, 'parseExpectation'], $expectations);
     }
 
-    /**
-     * @throws ParseException
-     * @return string
-     */
+    /** @throws ParseException */
     public function parseExpectation(string $expectationAnnotation): string
     {
         $matches = [];

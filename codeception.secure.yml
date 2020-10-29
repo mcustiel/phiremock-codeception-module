@@ -1,0 +1,26 @@
+actor: Tester
+paths:
+    tests: tests
+    log: tests/_output
+    data: tests/_data
+    support: tests/_support
+    envs: tests/_envs
+bootstrap: _bootstrap.php
+settings:
+    colors: true
+extensions:
+    enabled:
+        - \Codeception\Extension\RunFailed
+        - \Codeception\Extension\Phiremock
+    config:
+        \Codeception\Extension\Phiremock:
+            listen: 0.0.0.0:18080
+            start_delay: 1
+            debug: true
+            extra_instances:
+              -
+                listen: 127.0.0.1:18081
+                debug: true
+                certificate: tests/_data/certificate-cert.pem
+                certificate_key:  tests/_data/certificate-key.key
+                logs_path: tests/_output/phiremock.secure.log

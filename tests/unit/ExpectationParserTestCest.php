@@ -1,7 +1,7 @@
 <?php
 
 use Codeception\Exception\ParseException;
-use Codeception\Util\ExpectationAnnotationParser;
+use Mcustiel\Phiremock\Codeception\Util\ExpectationAnnotationParser;
 
 class ExpectationParserTestCest
 {
