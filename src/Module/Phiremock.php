@@ -133,7 +133,10 @@ class Phiremock extends CodeceptionModule
         $this->phiremock->resetScenarios();
     }
 
-    /** @deprecated Name is confusing, sounds like an assertion */
+    /**
+     * @deprecated Name is confusing, sounds like an assertion
+     * @throws ClientExceptionInterface
+     */
     public function didNotReceiveRequestsInRemoteService(): void
     {
         $this->dontHaveLoggedRequestsToRemoteService();
@@ -223,6 +226,7 @@ class Phiremock extends CodeceptionModule
         }
     }
 
+    /** @throws ModuleException */
     protected function setupExtraConnections(): void
     {
         if (!$this->isExtraConfig) {
