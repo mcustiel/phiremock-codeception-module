@@ -13,7 +13,7 @@ This codeception module allows you to connect to a Phiremock Server and to inter
 
 ```json
     "require-dev": {
-        "mcustiel/phiremock-codeception-module": "v1.0",
+        "mcustiel/phiremock-codeception-module": "^1.0",
         "guzzlehttp/guzzle": "^6.0"
     }
 ```
