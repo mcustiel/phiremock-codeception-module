@@ -2,10 +2,10 @@
 
 This codeception module allows you to connect to a Phiremock Server and to interact with it in a semantic way through the codeception actor in your tests.
 
-![Packagist Version](https://img.shields.io/packagist/v/mcustiel/phiremock-codeception-module)
+[![Packagist Version](https://img.shields.io/packagist/v/mcustiel/phiremock-codeception-module)](https://packagist.org/packages/mcustiel/phiremock-codeception-module)
 [![Build Status](https://scrutinizer-ci.com/g/mcustiel/phiremock-codeception-module/badges/build.png?b=master)](https://scrutinizer-ci.com/g/mcustiel/phiremock-codeception-module/build-status/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mcustiel/phiremock-codeception-module/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mcustiel/phiremock-codeception-module/?branch=master)
-![Packagist Downloads](https://img.shields.io/packagist/dm/mcustiel/phiremock-codeception-module)
+[![Packagist Downloads](https://img.shields.io/packagist/dm/mcustiel/phiremock-codeception-module)](https://packagist.org/packages/mcustiel/phiremock-codeception-module)
 
 ## Installation
 
