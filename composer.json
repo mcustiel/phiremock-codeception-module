@@ -34,13 +34,13 @@
     "license" : "GPL-3.0-or-later",
     "require" : {
         "php" : "^7.2",
-        "mcustiel/phiremock-client": "dev-master",
+        "mcustiel/phiremock-client": "^1.0",
         "codeception/codeception" : ">=2.2 <5.0",
         "codeception/lib-asserts": "^1.1"
     },
     "require-dev" : {
-        "mcustiel/phiremock-codeception-extension": "dev-master",
-        "mcustiel/phiremock-server": "dev-master",
+        "mcustiel/phiremock-codeception-extension": "^2.0",
+        "mcustiel/phiremock-server": "^1.0",
         "codeception/module-asserts": "^1.1",
         "guzzlehttp/guzzle" : "^7.0"
     },
