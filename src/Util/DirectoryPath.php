@@ -55,7 +55,7 @@ class DirectoryPath
     /** @throws ConfigurationException */
     public static function createAbsoluteOrRelativeToCodeceptionDir(string $path): self
     {
-        if (substr($path, 0, 1) === '/') {
+        if (preg_match('%^(?:[a-z]:\\|/)%', $path) === 1) {
             return new self($path);
         }
         return new self(Configuration::projectDir() . $path);
