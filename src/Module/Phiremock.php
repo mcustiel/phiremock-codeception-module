@@ -63,6 +63,7 @@ class Phiremock extends CodeceptionModule
     }
 
     /**
+     * @param mixed $settings
      * @throws ConfigurationException
      * @throws Exception
      */
@@ -174,9 +175,22 @@ class Phiremock extends CodeceptionModule
         $this->phiremock->setScenarioState($name, $state);
     }
 
+    /** @throws ModuleException */
+    protected function setupExtraConnections(): void
+    {
+        if (!$this->isExtraConfig) {
+            foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
+                if ($name === 'default') {
+                    throw new ModuleException($this, 'The connection name "default" is reserved and can not be used for an extra connection');
+                }
+                $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray(), true);
+            }
+        }
+    }
+
     private function createDebugMethod(): callable
     {
-        return function (string $msg) : void {
+        return function (string $msg): void {
             $this->debug($msg);
         };
     }
@@ -222,19 +236,6 @@ class Phiremock extends CodeceptionModule
         if (!$this->isExtraConfig) {
             foreach ($this->extraConnections as $connection) {
                 $connection->_before($test);
-            }
-        }
-    }
-
-    /** @throws ModuleException */
-    protected function setupExtraConnections(): void
-    {
-        if (!$this->isExtraConfig) {
-            foreach ($this->moduleConfig->getExtraConnectionsConfigs() as $name => $connectionConfig) {
-                if ($name === 'default') {
-                    throw new ModuleException($this, 'The connection name "default" is reserved and can not be used for an extra connection');
-                }
-                $this->extraConnections[$name] = new self($this->moduleContainer, $connectionConfig->asArray(), true);
             }
         }
     }

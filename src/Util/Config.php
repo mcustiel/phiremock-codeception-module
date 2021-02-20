@@ -67,7 +67,6 @@ class Config
         $this->clientFactory = $this->getFactoryClass($config);
         $this->initExtraConnections($config);
         $this->secure = $config['secure'];
-
     }
 
     /** @return Config[] */
