@@ -36,13 +36,13 @@
         "php" : "^7.2|^8.0",
         "mcustiel/phiremock-client": "^1.0",
         "codeception/codeception" : ">=2.2 <5.0",
-        "codeception/lib-asserts": "^1.1"
+        "codeception/lib-asserts": "^1.1|^2.0"
     },
     "require-dev" : {
         "mcustiel/phiremock-codeception-extension": "^2.0",
         "mcustiel/phiremock-server": "^1.0",
-        "codeception/module-asserts": "^1.1",
-        "guzzlehttp/guzzle" : "^7.0"
+        "guzzlehttp/guzzle" : "^7.0",
+        "codeception/module-asserts": "^1.1|^2.0"
     },
     "prefer-stable": true
 }
