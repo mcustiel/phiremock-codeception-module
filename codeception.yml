@@ -1,7 +1,6 @@
 actor: Tester
 paths:
     tests: tests
-    log: tests/_output
     output: tests/_output
     data: tests/_data
     support: tests/_support
@@ -16,5 +15,5 @@ extensions:
     config:
         \Codeception\Extension\Phiremock:
             listen: 0.0.0.0:18080
-            start_delay: 1
+            wait_until_ready: true
             debug: true
