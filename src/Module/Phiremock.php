@@ -36,7 +36,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 class Phiremock extends CodeceptionModule
 {
     /** @var array */
-    protected $config = Config::DEFAULT_CONFIG;
+    protected array $config = Config::DEFAULT_CONFIG;
 
     /** @var \Mcustiel\Phiremock\Client\Phiremock */
     private $phiremock;
