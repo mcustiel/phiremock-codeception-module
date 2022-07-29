@@ -45,7 +45,7 @@ class ExpectationAnnotationParser
             return [];
         }
         $expectations = Annotation::forMethod(
-            method_exists($test, 'getTestClass') ? $test->getTestClass() : $test->getTestInstance(), 
+            $test->getTestInstance(),
             $test->getTestMethod()
         )->fetchAll('expectation');
 
