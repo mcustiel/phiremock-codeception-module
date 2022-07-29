@@ -44,7 +44,10 @@ class ExpectationAnnotationParser
         if (!$test instanceof Cest) {
             return [];
         }
-        $expectations = Annotation::forMethod($test->getTestClass(), $test->getTestMethod())->fetchAll('expectation');
+        $expectations = Annotation::forMethod(
+            $test->getTestClass(),
+            $test->getTestMethod()
+        )->fetchAll('expectation');
 
         return array_map([$this, 'parseExpectation'], $expectations);
     }
