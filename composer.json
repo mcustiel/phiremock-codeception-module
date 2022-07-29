@@ -41,7 +41,7 @@
     "require-dev" : {
         "mcustiel/phiremock-codeception-extension": "^2.0|^3.0",
         "mcustiel/phiremock-server": "^1.0",
-        "codeception/module-asserts": "^2.0|^3.0",
+        "codeception/module-asserts": "^1.0|^2.0|^3.0",
         "guzzlehttp/guzzle" : "^7.0"
     },
     "prefer-stable": true
