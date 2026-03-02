@@ -33,10 +33,10 @@
     "description" : "Codeception module for PhireMock. Allows to stub remote services for HTTP requests.",
     "license" : "GPL-3.0-or-later",
     "require" : {
-        "php" : "^8.0",
+        "php" : "^8.2",
         "mcustiel/phiremock-client": "^1.0",
         "codeception/codeception" : "^5.0",
-        "codeception/lib-asserts": "^2.0"
+        "codeception/lib-asserts": "^3.0"
     },
     "require-dev" : {
         "mcustiel/phiremock-codeception-extension": "^3.0",
